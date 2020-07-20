@@ -1,0 +1,7 @@
+[replicaset_initializer]
+${replica_ips.0}
+
+[replicas]
+%{ for ip in replica_ips ~}
+${ip}
+%{ endfor ~}

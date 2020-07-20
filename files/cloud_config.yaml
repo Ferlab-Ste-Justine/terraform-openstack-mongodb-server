@@ -105,27 +105,6 @@ write_files:
         idx += 1;
       }
       rs.reconfig(cfg);
-  #Mongodb Replicaset init scripts
-  - path: /opt/setAdmin.js
-    owner: root:root
-    permission: "0700"
-    content: |
-      const replicasetStatus = db.adminCommand( { replSetGetStatus: 1 } );
-      if(replicasetStatus.codeName == "NotYetInitialized") {
-        var admin = db.getSiblingDB("admin");
-        admin.createUser(
-          {
-            user: "admin",
-            pwd: "${admin_password}",
-            roles: [ 
-              { role: "userAdminAnyDatabase", db: "admin" },
-              { role: "readWriteAnyDatabase", db: "admin" },
-              { role: "dbAdminAnyDatabase", db: "admin" },
-              { role: "clusterAdmin", db: "admin" }
-            ]
-          }
-        )
-      }
   - path: /opt/setReplicaset.sh
     owner: root:root
     permission: "0700"

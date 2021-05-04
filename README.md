@@ -34,7 +34,7 @@ The module takes the following variables as input.
 - **bastion_key_pair**: ssh keypair that will be used to ssh on the bastion. Will be used by terraform to finalize the replicaset configuration via **ansible** scripts.
 - **cluster_user**: User that ansible will use to ssh into each replica from the bastion.
 - **Directory to put ansible files under**: Directory where ansible files will be put on the bastion.
-- **mongodb_image**: Name of the docker image that will be used to provision mongodb. Defaults to **mongo:4.2**.
+- **mongodb_image**: Name of the docker image that will be used to provision mongodb. Defaults to **mongo:4.2.13**.
 - **mongodb_password**: Password of the admin user. If no value is provided, a random value will be generated
 - **mongodb_replicaset_key**: Key used by replicaset members to authentify each other
 

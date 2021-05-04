@@ -72,7 +72,7 @@ variable "setup_path" {
 variable "mongodb_image" {
   description = "Name of the docker image that will be used to provision mongodb"
   type = string
-  default = "mongo:4.2"
+  default = "mongo:4.2.13"
 }
 
 variable "mongodb_password" {

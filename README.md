@@ -20,7 +20,7 @@ Because dns is done via the **host** file in all members of the replicaset, chan
 
 The module takes the following variables as input.
 
-- **namespace**: Namespace to isolate the generate resources. The replicaset will be named ```<mongodb_replicaset_basename>-<namespace>``` and the nodes will be named ```<mongodb_replicaset_basename>-<node-number>-<namespace>```. Can be omitted.
+- **namespace**: Namespace to isolate the generate resources. The replicaset will be named ```<mongodb_replicaset_basename>-<namespace>``` and the nodes will be named ```<mongodb_replicaset_basename>-<namespace>-<node-number>```. Can be omitted.
 - **mongodb_replicaset_basename**: Basename of the replicaset. See description of **namespace** above for details. Defaults to **replicaset**.
 - **image_id**: ID of the vm image used to provision the nodes
 - **flavor_id**: ID of the VM flavor for the nodes

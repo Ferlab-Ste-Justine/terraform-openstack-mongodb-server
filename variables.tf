@@ -14,59 +14,52 @@ variable "flavor_id" {
   type = string
 }
 
-variable "security_groups" {
-  description = "Security groups of the nodes"
-  type = list(string)
-  default = ["default"]
-}
-
-variable "network_name" {
-  description = "Name of the network the nodes will be attached to"
-  type = string
-}
-
 variable "keypair_name" {
-  description = "Name of the keypair that will be used to ssh on the mongodb replicas"
+  description = "Name of the keypair that will be used to ssh to the node"
   type = string
 }
 
-variable "replicas_count" {
-  description = "Number of replicas in the replicaset"
-  type = number
-  default = 3
+variable "network_port" {
+  description = "Network port to assign to the node. Should be of type openstack_networking_port_v2"
+  type        = any
 }
 
-variable "bastion_external_ip" {
-  description = "External ip of the bastion"
+variable "self_name" {
+  description = "Base name of the vm"
   type = string
 }
 
-variable "bastion_port" {
-  description = "Ssh port the bastion uses"
-  type = number
-  default = 22
-}
-
-variable "bastion_user" {
-  description = "User to ssh on the bastion as"
+variable "self_domain" {
+  description = "Domain name of the vm"
   type = string
-  default = "ubuntu"
 }
 
-variable "bastion_key_pair" {
-  description = "SSh key pair"
-  type = any
+variable "replicaset_members" {
+  description = "List of domain names indicating the members of the replicaset"
+  type        = list(string)
 }
 
-variable "cluster_user" {
-  description = "User to ssh on the replicas from the bastion as"
+variable "replicaset_key" {
+  description = "Key used by replicaset members to authentify each other"
   type = string
-  default = "ubuntu"
 }
 
-variable "setup_path" {
-  description = "Directory to put ansible files under"
+variable "replicaset_name" {
+  description = "Name to give to the replicaset when declaring it"
   type = string
+  default = "replicaset"
+}
+
+variable "nameserver_ips" {
+  description = "Ips of the nameservers"
+  type = list(string)
+  default = []
+}
+
+variable "bootstrap_cluster" {
+  description = "Whether the node should bootstrap the cluster: Configuring the replicaset and admin user"
+  type        = bool
+  default     = false
 }
 
 variable "mongodb_image" {
@@ -75,20 +68,36 @@ variable "mongodb_image" {
   default = "mongo:4.2.13"
 }
 
-variable "mongodb_password" {
-  description = "Password of the admin user. If no value is provided, a random value will be generated"
+variable "mongodb_admin_password" {
+  description = "Password of the admin user"
   type = string
-  default = ""
 }
 
-variable "mongodb_replicaset_key" {
-  description = "Key used by replicaset members to authentify each other"
-  type = string
-  default = ""
+variable "ca" {
+  description = "The ca that will sign the db's certificate. Should have the following keys: key, key_algorithm, certificate"
+  type = any
 }
 
-variable "mongodb_replicaset_basename" {
-  description = "Base name to give to the replicaset when declaring it"
+variable "organization" {
+  description = "The mongodb server certificates' organization"
   type = string
-  default = "replicaset"
+  default = "Ferlab"
+}
+
+variable "certificate_validity_period" {
+  description = "The mongodb server cluster's certificate's validity period in hours"
+  type = number
+  default = 100*365*24
+}
+
+variable "certificate_early_renewal_period" {
+  description = "The mongodb server cluster's certificate's early renewal period in hours"
+  type = number
+  default = 99*365*24
+}
+
+variable "key_length" {
+  description = "The key length of the certificate's private key"
+  type = number
+  default = 4096
 }

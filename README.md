@@ -55,7 +55,7 @@ resource "openstack_compute_keypair_v2" "mongodb" {
 }
 
 module "mongodb_security_groups" {
-  source = "git::https://github.com/openstack-mongodb-security-groups.git"
+  source = "git::https://github.com/Ferlab-Ste-Justine/openstack-mongodb-security-groups.git"
   namespace = "test"
 }
 
@@ -68,7 +68,7 @@ resource "openstack_networking_port_v2" "mongodb" {
 }
 
 module "mondodb_replica_1" {
-  source = "git::https://github.com/openstack-mongodb-replicaset.git"
+  source = "git::https://github.com/Ferlab-Ste-Justine/openstack-mongodb-replicaset.git"
   namespace = "test"
   image_id = data.openstack_images_image_v2.ubuntu_focal.id
   flavor_id = module.reference_infra.flavors.nano.id
@@ -89,7 +89,7 @@ module "mondodb_replica_1" {
 }
 
 module "mondodb_replica_2" {
-  source = "./openstack-mongodb-replicaset"
+  source = "git::https://github.com/Ferlab-Ste-Justine/openstack-mongodb-replicaset.git"
   namespace = "test"
   image_id = data.openstack_images_image_v2.ubuntu_focal.id
   flavor_id = module.reference_infra.flavors.nano.id
@@ -110,7 +110,7 @@ module "mondodb_replica_2" {
 }
 
 module "mondodb_replica_3" {
-  source = "./openstack-mongodb-replicaset"
+  source = "git::https://github.com/Ferlab-Ste-Justine/openstack-mongodb-replicaset.git"
   namespace = "test"
   image_id = data.openstack_images_image_v2.ubuntu_focal.id
   flavor_id = module.reference_infra.flavors.nano.id

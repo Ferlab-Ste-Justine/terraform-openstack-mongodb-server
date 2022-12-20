@@ -154,3 +154,22 @@ module "k8_external_domain" {
 }
 
 ```
+
+# Gotcha
+
+To safeguard against potential outages and loss of data, changes to the server's user data will be ignored without reprovisioning.
+
+To reprovision a new instance with changes to the following parameters, the module should be explicitly deleted and re-created:
+- nameserver_ips
+- replicaset_name
+- replicaset_key
+- replicaset_members
+- self_domain
+- bootstrap_cluster
+- mongodb_image
+- mongodb_admin_password
+- ca
+- organization
+- certificate_validity_period
+- certificate_early_renewal_period
+- key_length

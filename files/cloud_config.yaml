@@ -1,6 +1,6 @@
 #cloud-config
-fqdn: ${self_domain}
-hostname: ${self_domain}
+fqdn: ${mongodb_server.domain}
+hostname: ${mongodb_server.domain}
 prefer_fqdn_over_hostname: true
 preserve_hostname: false
 users:
@@ -31,7 +31,7 @@ write_files:
   - path: /opt/keyfile
     owner: root:root
     permissions: "0400"
-    content: ${replicaset_key}
+    content: ${mongodb_replicaset.key}
   #TLS files
   - path: /opt/mongodb-keyfile.pem
     owner: root:root
@@ -63,22 +63,22 @@ write_files:
         authorization: enabled
         keyFile: /opt/keyfile
       replication:
-        replSetName: ${replicaset_name}
+        replSetName: ${mongodb_replicaset.name}
   #Mongodb Replicaset configuration
   - path: /opt/rs-config.js
     owner: root:root
     permissions: "0444"
     content: |
       const config = {
-        _id : "${replicaset_name}",
+        _id : "${mongodb_replicaset.name}",
         members: [
-%{ for idx in range(0, length(replicaset_members)) ~}
+%{ for idx in range(0, length(mongodb_replicaset.members)) ~}
           {
             _id: ${idx},
-            host: "${replicaset_members[idx]}:27017",
+            host: "${mongodb_replicaset.members[idx]}:27017",
             //It complexifies setup if we don't ensure the node that initializes the rs
             //also becomes the master when initially doing the setup
-            priority: ${replicaset_members[idx] == self_domain && bootstrap_cluster ? 1 : 0.5}
+            priority: ${mongodb_replicaset.members[idx] == mongodb_server.domain && mongodb_server.bootstrap_cluster ? 1 : 0.5}
           }, 
 %{ endfor ~}
         ]
@@ -107,7 +107,7 @@ write_files:
       db.createUser(
         {
           user: "admin",
-          pwd: "${admin_password}",
+          pwd: "${mongodb_replicaset.admin_password}",
           roles: [ 
             { role: "userAdminAnyDatabase", db: "admin" },
             { role: "readWriteAnyDatabase", db: "admin" },
@@ -117,10 +117,10 @@ write_files:
         }
       );
 
-      db.auth("admin", "${admin_password}");
+      db.auth("admin", "${mongodb_replicaset.admin_password}");
 
       //equilibrate election priorities after we are done with setup
-      const rs_count = ${length(replicaset_members)};
+      const rs_count = ${length(mongodb_replicaset.members)};
       var idx = 0;
       var cfg = rs.conf();
       while(idx < rs_count) {
@@ -135,14 +135,14 @@ write_files:
       #!/bin/bash
       #If node is tagged as the initializer, initiate the replicaset
       #MongoDB requires that only one node initalize the replicaset 
-%{ if bootstrap_cluster ~}
+%{ if mongodb_server.bootstrap_cluster ~}
       #Wait for domain to be up
-      SELF_IP=$(dig +short dig +short ${self_domain})
+      SELF_IP=$(dig +short dig +short ${mongodb_server.domain})
       while [ -z "$SELF_IP" ]
       do
         echo "Domain not yet up, will sleep 1 second"
         sleep 1
-        SELF_IP=$(dig +short dig +short ${self_domain})
+        SELF_IP=$(dig +short dig +short ${mongodb_server.domain})
       done
       #Wait for mongodb server to be up
       MONGO_UP=$(docker logs mongodb | grep "waiting for connections on port")
@@ -151,7 +151,7 @@ write_files:
         sleep 1
         MONGO_UP=$(docker logs mongodb | grep "waiting for connections on port")
       done
-      docker run --rm --network host -v /etc/hosts:/etc/hosts -v /opt/setReplicaset.js:/opt/setReplicaset.js -v /opt/rs-config.js:/opt/rs-config.js -v /opt/mongodb-ca-cert.pem:/opt/mongodb-ca-cert.pem ${mongodb_image} mongo --tls --tlsCAFile /opt/mongodb-ca-cert.pem mongodb://127.0.0.1:27017/admin /opt/setReplicaset.js
+      docker run --rm --network host -v /etc/hosts:/etc/hosts -v /opt/setReplicaset.js:/opt/setReplicaset.js -v /opt/rs-config.js:/opt/rs-config.js -v /opt/mongodb-ca-cert.pem:/opt/mongodb-ca-cert.pem ${mongodb_server.image} mongo --tls --tlsCAFile /opt/mongodb-ca-cert.pem mongodb://127.0.0.1:27017/admin /opt/setReplicaset.js
 %{ endif ~}
 packages:
   - apt-transport-https
@@ -161,14 +161,14 @@ packages:
   - software-properties-common
 runcmd:
   #Add dns servers
-  - echo "DNS=${join(" ", nameserver_ips)}" >> /etc/systemd/resolved.conf
+  - echo "DNS=${join(" ", mongodb_server.nameserver_ips)}" >> /etc/systemd/resolved.conf
   - systemctl stop systemd-resolved
   - systemctl start systemd-resolved
   #Install prometheus node exporter as a binary managed as a systemd service
-  - wget -O /opt/node_exporter.tar.gz https://github.com/prometheus/node_exporter/releases/download/v1.0.1/node_exporter-1.0.1.linux-amd64.tar.gz
+  - wget -O /opt/node_exporter.tar.gz https://github.com/prometheus/node_exporter/releases/download/v1.3.0/node_exporter-1.3.0.linux-amd64.tar.gz
   - mkdir -p /opt/node_exporter
   - tar zxvf /opt/node_exporter.tar.gz -C /opt/node_exporter
-  - cp /opt/node_exporter/node_exporter-1.0.1.linux-amd64/node_exporter /usr/local/bin/node_exporter
+  - cp /opt/node_exporter/node_exporter-1.3.0.linux-amd64/node_exporter /usr/local/bin/node_exporter
   - chown node-exporter:node-exporter /usr/local/bin/node_exporter
   - rm -r /opt/node_exporter && rm /opt/node_exporter.tar.gz
   - systemctl enable node-exporter
@@ -179,8 +179,8 @@ runcmd:
   - apt-get update
   - apt-get install -y docker-ce docker-ce-cli containerd.io
   - systemctl enable docker
-  - docker run --rm --entrypoint="" -v /opt/keyfile:/opt/keyfile -v /opt/mongodb-keyfile.pem:/opt/mongodb-keyfile.pem -v /opt/mongodb-ca-cert.pem:/opt/mongodb-ca-cert.pem  ${mongodb_image} chown mongodb /opt/keyfile /opt/mongodb-keyfile.pem /opt/mongodb-ca-cert.pem
-  - docker run -d --restart=always --name=mongodb --network=host -v /opt/mongodb-data:/data/db -v /opt/node-config:/opt/node-config -v /opt/keyfile:/opt/keyfile -v /opt/mongodb-keyfile.pem:/opt/mongodb-keyfile.pem -v /opt/mongodb-ca-cert.pem:/opt/mongodb-ca-cert.pem ${mongodb_image} mongod --config /opt/node-config
+  - docker run --rm --entrypoint="" -v /opt/keyfile:/opt/keyfile -v /opt/mongodb-keyfile.pem:/opt/mongodb-keyfile.pem -v /opt/mongodb-ca-cert.pem:/opt/mongodb-ca-cert.pem  ${mongodb_server.image} chown mongodb /opt/keyfile /opt/mongodb-keyfile.pem /opt/mongodb-ca-cert.pem
+  - docker run -d --restart=always --name=mongodb --network=host -v /opt/mongodb-data:/data/db -v /opt/node-config:/opt/node-config -v /opt/keyfile:/opt/keyfile -v /opt/mongodb-keyfile.pem:/opt/mongodb-keyfile.pem -v /opt/mongodb-ca-cert.pem:/opt/mongodb-ca-cert.pem ${mongodb_server.image} mongod --config /opt/node-config
   #Initiate replicaset
   - chmod +x /opt/setReplicaset.sh
   - /opt/setReplicaset.sh

@@ -1,7 +1,6 @@
-variable "namespace" {
-  description = "Namespace to create the resources under"
+variable "name" {
+  description = "Name of the vm"
   type = string
-  default = ""
 }
 
 variable "image_id" {
@@ -24,80 +23,51 @@ variable "network_port" {
   type        = any
 }
 
-variable "self_name" {
-  description = "Base name of the vm"
-  type = string
+variable "mongodb_server" {
+  description = "Parameters that are specific to the mongodb server"
+  type = object({
+    domain            = string
+    bootstrap_cluster = bool
+    image             = string
+    nameserver_ips    = list(string)
+  })
 }
 
-variable "self_domain" {
-  description = "Domain name of the vm"
-  type = string
-}
-
-variable "replicaset_members" {
-  description = "List of domain names indicating the members of the replicaset"
-  type        = list(string)
-}
-
-variable "replicaset_key" {
-  description = "Key used by replicaset members to authentify each other"
-  type = string
-}
-
-variable "replicaset_name" {
-  description = "Name to give to the replicaset when declaring it"
-  type = string
-  default = "replicaset"
-}
-
-variable "nameserver_ips" {
-  description = "Ips of the nameservers"
-  type = list(string)
-  default = []
-}
-
-variable "bootstrap_cluster" {
-  description = "Whether the node should bootstrap the cluster: Configuring the replicaset and admin user"
-  type        = bool
-  default     = false
-}
-
-variable "mongodb_image" {
-  description = "Name of the docker image that will be used to provision mongodb"
-  type = string
-  default = "mongo:4.2.13"
-}
-
-variable "mongodb_admin_password" {
-  description = "Password of the admin user"
-  type = string
+variable "mongodb_replicaset" {
+  description = "Parameters that are common to the entire mongodb replicaset"
+  type = object({
+    name           = string
+    members        = list(string)
+    key            = string
+    admin_password = string
+  })
 }
 
 variable "ca" {
   description = "The ca that will sign the db's certificate. Should have the following keys: key, key_algorithm, certificate"
-  type = any
+  type = object({
+    key = string
+    key_algorithm = string
+    certificate = string
+  })
+  sensitive = true
+  default = {
+    key = ""
+    key_algorithm = ""
+    certificate = ""
+  }
 }
 
-variable "organization" {
-  description = "The mongodb server certificates' organization"
-  type = string
-  default = "Ferlab"
-}
-
-variable "certificate_validity_period" {
-  description = "The mongodb server cluster's certificate's validity period in hours"
-  type = number
-  default = 100*365*24
-}
-
-variable "certificate_early_renewal_period" {
-  description = "The mongodb server cluster's certificate's early renewal period in hours"
-  type = number
-  default = 365*24
-}
-
-variable "key_length" {
-  description = "The key length of the certificate's private key"
-  type = number
-  default = 4096
+variable "server_certificate" {
+  description = "Parameters of the server's certificate. Should contain the following keys: organization, validity_period, early_renewal_period"
+  type = object({
+    organization = string
+    validity_period = number
+    early_renewal_period = number
+  })
+  default = {
+    organization = "Ferlab"
+    validity_period = 100*365*24
+    early_renewal_period = 365*24
+  }
 }

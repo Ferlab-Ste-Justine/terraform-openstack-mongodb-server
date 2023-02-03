@@ -1,4 +1,4 @@
-data "template_cloudinit_config" "mongodb_replicas" {
+data "template_cloudinit_config" "mongodb_server" {
   gzip = true
   base64_encode = true
   part {
@@ -6,14 +6,8 @@ data "template_cloudinit_config" "mongodb_replicas" {
     content = templatefile(
       "${path.module}/files/cloud_config.yaml",
       {
-        nameserver_ips = var.nameserver_ips
-        replicaset_name = var.replicaset_name
-        replicaset_key = var.replicaset_key
-        replicaset_members = var.replicaset_members
-        self_domain = var.self_domain
-        bootstrap_cluster = var.bootstrap_cluster
-        mongodb_image = var.mongodb_image
-        admin_password = var.mongodb_admin_password
+        mongodb_server = var.mongodb_server
+        mongodb_replicaset = var.mongodb_replicaset
         tls_certificate = "${tls_locally_signed_cert.certificate.cert_pem}"
         tls_private_key = tls_private_key.key.private_key_pem
         tls_ca_certificate = var.ca.certificate
@@ -22,12 +16,12 @@ data "template_cloudinit_config" "mongodb_replicas" {
   }
 }
 
-resource "openstack_compute_instance_v2" "mongodb_replica" {
-  name            = "${var.self_name}-${var.namespace}"
+resource "openstack_compute_instance_v2" "mongodb_server" {
+  name            = var.name
   image_id        = var.image_id
   flavor_id       = var.flavor_id
   key_pair        = var.keypair_name
-  user_data = data.template_cloudinit_config.mongodb_replicas.rendered
+  user_data = data.template_cloudinit_config.mongodb_server.rendered
 
   network {
     port = var.network_port.id

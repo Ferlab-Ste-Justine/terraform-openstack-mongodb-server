@@ -23,6 +23,10 @@ resource "openstack_compute_instance_v2" "mongodb_server" {
   key_pair        = var.keypair_name
   user_data = data.template_cloudinit_config.mongodb_server.rendered
 
+  scheduler_hints {
+    group = var.server_group.id
+  }
+
   network {
     port = var.network_port.id
   }

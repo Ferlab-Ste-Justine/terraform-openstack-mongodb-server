@@ -23,6 +23,11 @@ variable "network_port" {
   type        = any
 }
 
+variable "server_group" {
+  description = "Server group to assign to the node. Should be of type openstack_compute_servergroup_v2"
+  type        = any
+}
+
 variable "mongodb_server" {
   description = "Parameters that are specific to the mongodb server"
   type = object({

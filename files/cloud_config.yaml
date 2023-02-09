@@ -145,11 +145,11 @@ write_files:
         SELF_IP=$(dig +short dig +short ${mongodb_server.domain})
       done
       #Wait for mongodb server to be up
-      MONGO_UP=$(docker logs mongodb | grep "waiting for connections on port")
+      MONGO_UP=$(docker logs mongodb | grep -i "waiting for connections")
       while [ -z "$MONGO_UP" ]
       do
         sleep 1
-        MONGO_UP=$(docker logs mongodb | grep "waiting for connections on port")
+        MONGO_UP=$(docker logs mongodb | grep -i "waiting for connections")
       done
       docker run --rm --network host -v /etc/hosts:/etc/hosts -v /opt/setReplicaset.js:/opt/setReplicaset.js -v /opt/rs-config.js:/opt/rs-config.js -v /opt/mongodb-ca-cert.pem:/opt/mongodb-ca-cert.pem ${mongodb_server.image} mongo --tls --tlsCAFile /opt/mongodb-ca-cert.pem mongodb://127.0.0.1:27017/admin /opt/setReplicaset.js
 %{ endif ~}

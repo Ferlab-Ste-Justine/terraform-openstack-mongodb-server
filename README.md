@@ -15,7 +15,9 @@ This module also assumes the existance of a nameserver to manage your mongodb do
 The module takes the following variables as input.
 
 - **name**: Name of the vm.
-- **image_id**: ID of the vm image used to provision the node.
+- **image_source**: Source of the image to provision the node on. It takes the following keys (only one of the two fields should be used, the other one should be empty):
+  - **image_id**: Id of the image to associate with a vm that has local storage
+  - **volume_id**: Id of a volume containing the os to associate with the vm
 - **flavor_id**: ID of the VM flavor for the node.
 - **network_port**: Network port to assign to the node. Should be of type openstack_networking_port_v2.
 - **server_group**: Server group to assign to the node. Should be of type openstack_compute_servergroup_v2.
@@ -123,7 +125,10 @@ module "mondodb_vms" {
 
   source = "git::https://github.com/Ferlab-Ste-Justine/terraform-openstack-mongodb-server.git"
   name               = "myproject-mongodb-${each.value.name}"
-  image_id           = each.value.image
+  image_source = {
+    image_id  = each.value.image
+    volume_id = ""
+  }
   flavor_id          = each.value.flavor
   network_port       = openstack_networking_port_v2.mongodb[each.value.name]
   server_group       = openstack_compute_servergroup_v2.mongodb

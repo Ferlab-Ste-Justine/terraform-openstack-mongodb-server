@@ -151,7 +151,13 @@ write_files:
         sleep 1
         MONGO_UP=$(docker logs mongodb | grep -i "waiting for connections")
       done
-      docker run --rm --network host -v /etc/hosts:/etc/hosts -v /opt/setReplicaset.js:/opt/setReplicaset.js -v /opt/rs-config.js:/opt/rs-config.js -v /opt/mongodb-ca-cert.pem:/opt/mongodb-ca-cert.pem ${mongodb_server.image} mongo --tls --tlsCAFile /opt/mongodb-ca-cert.pem mongodb://127.0.0.1:27017/admin /opt/setReplicaset.js
+      MONGO_VERSION=$(echo "${mongodb_server.image}" | cut -d':' -f2)
+      if [[ "${MONGO_VERSION}" =~ ^[0-9] && ${MONGO_VERSION:0:1} -le 4 ]]; then
+        MONGO_SHELL="mongo"
+      else
+        MONGO_SHELL="mongosh"
+      fi
+      docker run --rm --network host -v /etc/hosts:/etc/hosts -v /opt/setReplicaset.js:/opt/setReplicaset.js -v /opt/rs-config.js:/opt/rs-config.js -v /opt/mongodb-ca-cert.pem:/opt/mongodb-ca-cert.pem ${mongodb_server.image} ${MONGO_SHELL} --tls --tlsCAFile /opt/mongodb-ca-cert.pem mongodb://127.0.0.1:27017/admin /opt/setReplicaset.js
 %{ endif ~}
 packages:
   - apt-transport-https

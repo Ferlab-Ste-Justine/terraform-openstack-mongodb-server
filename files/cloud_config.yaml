@@ -152,7 +152,7 @@ write_files:
         MONGO_UP=$(docker logs mongodb | grep -i "waiting for connections")
       done
       MONGO_VERSION=$(echo "${mongodb_server.image}" | cut -d':' -f2)
-      if [[ "${MONGO_VERSION}" =~ ^[0-9] && ${MONGO_VERSION:0:1} -le 4 ]]; then
+      if [[ "${MONGO_VERSION}" =~ ^[1-4](\.|$) ]]; then
         MONGO_SHELL="mongo"
       else
         MONGO_SHELL="mongosh"

@@ -157,7 +157,7 @@ write_files:
       else
         MONGO_SHELL="mongosh"
       fi
-      docker run --rm --network host -v /etc/hosts:/etc/hosts -v /opt/setReplicaset.js:/opt/setReplicaset.js -v /opt/rs-config.js:/opt/rs-config.js -v /opt/mongodb-ca-cert.pem:/opt/mongodb-ca-cert.pem ${mongodb_server.image} $MONGO_SHELL --tls --tlsCAFile /opt/mongodb-ca-cert.pem mongodb://127.0.0.1:27017/admin /opt/setReplicaset.js
+      docker run --rm --network host -v /etc/hosts:/etc/hosts -v /opt/setReplicaset.js:/opt/setReplicaset.js -v /opt/rs-config.js:/opt/rs-config.js -v /opt/mongodb-ca-cert.pem:/opt/mongodb-ca-cert.pem ${fluentd_params} ${mongodb_server.image} $MONGO_SHELL --tls --tlsCAFile /opt/mongodb-ca-cert.pem mongodb://127.0.0.1:27017/admin /opt/setReplicaset.js
 %{ endif ~}
 packages:
   - apt-transport-https
@@ -185,8 +185,8 @@ runcmd:
   - apt-get update
   - apt-get install -y docker-ce docker-ce-cli containerd.io
   - systemctl enable docker
-  - docker run --rm --entrypoint="" -v /opt/keyfile:/opt/keyfile -v /opt/mongodb-keyfile.pem:/opt/mongodb-keyfile.pem -v /opt/mongodb-ca-cert.pem:/opt/mongodb-ca-cert.pem  ${mongodb_server.image} chown mongodb /opt/keyfile /opt/mongodb-keyfile.pem /opt/mongodb-ca-cert.pem
-  - docker run -d --restart=always --name=mongodb --network=host -v /opt/mongodb-data:/data/db -v /opt/node-config:/opt/node-config -v /opt/keyfile:/opt/keyfile -v /opt/mongodb-keyfile.pem:/opt/mongodb-keyfile.pem -v /opt/mongodb-ca-cert.pem:/opt/mongodb-ca-cert.pem ${mongodb_server.image} mongod --config /opt/node-config
+  - docker run --rm --entrypoint="" -v /opt/keyfile:/opt/keyfile -v /opt/mongodb-keyfile.pem:/opt/mongodb-keyfile.pem -v /opt/mongodb-ca-cert.pem:/opt/mongodb-ca-cert.pem ${fluentd_params} ${mongodb_server.image} chown mongodb /opt/keyfile /opt/mongodb-keyfile.pem /opt/mongodb-ca-cert.pem
+  - docker run -d --restart=always --name=mongodb --network=host -v /opt/mongodb-data:/data/db -v /opt/node-config:/opt/node-config -v /opt/keyfile:/opt/keyfile -v /opt/mongodb-keyfile.pem:/opt/mongodb-keyfile.pem -v /opt/mongodb-ca-cert.pem:/opt/mongodb-ca-cert.pem ${fluentd_params} ${mongodb_server.image} mongod --config /opt/node-config
   #Initiate replicaset
   - chmod +x /opt/setReplicaset.sh
   - /opt/setReplicaset.sh

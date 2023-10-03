@@ -37,6 +37,19 @@ The module takes the following variables as input.
   - **organization**: The mongodb server certificates' organization
   - **validity_period**: The mongodb server cluster's certificate's validity period in hours.
   - **early_renewal_period**: The mongodb server cluster's certificate's validity period in hours.
+- **fluentd**: Optional fluentd configuration to securely route logs to a fluentd node using the forward plugin. It has the following keys:
+  - **enabled**: If set to false (the default), fluentd will not be installed.
+  - **mongodb_tag**: Tag to assign to logs coming from mongodb
+  - **node_exporter_tag** Tag to assign to logs coming from the prometheus node exporter
+  - **forward**: Configuration for the forward plugin that will talk to the external fluentd node. It has the following keys:
+    - **domain**: Ip or domain name of the remote fluentd node.
+    - **port**: Port the remote fluentd node listens on
+    - **hostname**: Unique hostname identifier for the vm
+    - **shared_key**: Secret shared key with the remote fluentd node to authentify the client
+    - **ca_cert**: CA certificate that signed the remote fluentd node's server certificate (used to authentify it)
+  - **buffer**: Configuration for the buffering of outgoing fluentd traffic
+    - **customized**: Set to false to use the default buffering configurations. If you wish to customize it, set this to true.
+    - **custom_value**: Custom buffering configuration to provide that will override the default one. Should be valid fluentd configuration syntax, including the opening and closing ```<buffer>``` tags.
 
 # Example
 

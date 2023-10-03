@@ -79,3 +79,40 @@ variable "server_certificate" {
     early_renewal_period = 365*24
   }
 }
+
+variable "fluentd" {
+  description = "Fluentd configurations"
+  sensitive   = true
+  type = object({
+    enabled = bool,
+    mongodb_tag = string,
+    node_exporter_tag = string,
+    forward = object({
+      domain = string,
+      port = number,
+      hostname = string,
+      shared_key = string,
+      ca_cert = string,
+    }),
+    buffer = object({
+      customized = bool,
+      custom_value = string,
+    })
+  })
+  default = {
+    enabled = false
+    mongodb_tag = ""
+    node_exporter_tag = ""
+    forward = {
+      domain = ""
+      port = 0
+      hostname = ""
+      shared_key = ""
+      ca_cert = ""
+    }
+    buffer = {
+      customized = false
+      custom_value = ""
+    }
+  }
+}
